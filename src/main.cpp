@@ -24,17 +24,19 @@ StaticJsonDocument<200> doc;
 
 #define USE_SERIAL Serial
 
-void execCommand(const char *event, const char *args)
+void execCommand(const char *event, StaticJsonDocument<200> doc)
 {
-  if (!strcmp(event, "exec"))
+  if (strcmp(event, "exec") != 0)
   {
     return;
   }
-  if (!strcmp(args, "LED_ON"))
+  const char *args = ((const char *)doc["command"]);
+  USE_SERIAL.printf("[IOc] Connected to url: %s\n", args);
+  if (strcmp(args, "LED_ON") == 0)
   {
     digitalWrite(LED_BUILTIN, LOW);
   }
-  if (!strcmp(args, "LED_OFF"))
+  if (strcmp(args, "LED_OFF") == 0)
   {
     digitalWrite(LED_BUILTIN, HIGH);
   }
@@ -47,7 +49,7 @@ void parseEvent(uint8_t *payload)
   {
     return;
   }
-  execCommand((const char *)doc[0], (const char *)doc[1]);
+  execCommand((const char *)doc[0], doc[1]);
 }
 void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length)
 {
@@ -61,7 +63,6 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length)
     USE_SERIAL.printf("[IOc] Connected to url: %s\n", payload);
     break;
   case sIOtype_EVENT:
-    USE_SERIAL.printf("[IOc] get event: %s\n", payload);
     parseEvent(payload);
     break;
   case sIOtype_ACK:
@@ -137,7 +138,7 @@ void loop()
 
   uint64_t now = millis();
 
-  if (now - messageTimestamp > 2000)
+  if (now - messageTimestamp > 500)
   {
     messageTimestamp = now;
 
@@ -151,7 +152,7 @@ void loop()
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
-    param1["now"] = (uint32_t)now;
+    param1["uptime"] = (uint32_t)now;
 
     // JSON to String (serializion)
     String output;
@@ -161,6 +162,6 @@ void loop()
     socketIO.sendEVENT(output);
 
     // Print JSON for debugging
-    USE_SERIAL.println(output);
+    // USE_SERIAL.println(output);
   }
 }
