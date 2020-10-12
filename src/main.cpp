@@ -7,6 +7,7 @@
 
 #include <Arduino.h>
 
+#include "uFire_SHT20.h"
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 
@@ -17,6 +18,7 @@
 
 #include <Hash.h>
 
+uFire_SHT20 sht20;
 ESP8266WiFiMulti WiFiMulti;
 SocketIOclient socketIO;
 
@@ -87,7 +89,8 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length)
 void setup()
 {
   // setup io
-
+  Wire.begin();
+  sht20.begin();
   pinMode(LED_BUILTIN, OUTPUT);
 
   // USE_SERIAL.begin(921600);
@@ -138,7 +141,7 @@ void loop()
 
   uint64_t now = millis();
 
-  if (now - messageTimestamp > 500)
+  if (now - messageTimestamp > 2000)
   {
     messageTimestamp = now;
 
@@ -152,15 +155,16 @@ void loop()
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
+    param1["mac"] = WiFi.macAddress();
     param1["uptime"] = (uint32_t)now;
-
+    param1["temperature"] = sht20.temperature();
+    param1["humidity"] = sht20.humidity();
     // JSON to String (serializion)
     String output;
     serializeJson(doc, output);
 
     // Send event
     socketIO.sendEVENT(output);
-
     // Print JSON for debugging
     // USE_SERIAL.println(output);
   }
