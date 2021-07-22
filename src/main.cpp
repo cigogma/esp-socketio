@@ -1,13 +1,10 @@
-/*
- * WebSocketClientSocketIO.ino
- *
- *  Created on: 06.06.2016
- *
- */
 
 #include <Arduino.h>
 
-#include "uFire_SHT20.h"
+#include <uFire_SHT20_JSON.h>
+#include <uFire_SHT20_MP.h>
+#include <uFire_SHT20.h>
+
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 
@@ -88,15 +85,12 @@ void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length)
 
 void setup()
 {
-  // setup io
   Wire.begin();
   sht20.begin();
   pinMode(LED_BUILTIN, OUTPUT);
 
-  // USE_SERIAL.begin(921600);
   USE_SERIAL.begin(115200);
 
-  //Serial.setDebugOutput(true);
   USE_SERIAL.setDebugOutput(true);
 
   USE_SERIAL.println();
@@ -116,7 +110,7 @@ void setup()
     WiFi.softAPdisconnect(true);
   }
 
-  WiFiMulti.addAP("Net", "borsecapamineralA2");
+  WiFiMulti.addAP("licenta", "123456789");
 
   //WiFi.disconnect();
   while (WiFiMulti.run() != WL_CONNECTED)
